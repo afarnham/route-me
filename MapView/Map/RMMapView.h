@@ -101,6 +101,7 @@ typedef struct {
 	CGFloat angle;
 	float averageDistanceFromCenter;
 	int numTouches;
+    BOOL enteredMovePhase;
 } RMGestureDetails;
 
 @class RMMapContents;
@@ -151,6 +152,8 @@ typedef struct {
 	RMProjectedPoint NEconstraint, SWconstraint;
 	
 	BOOL _contentsIsSet; // "contents" must be set, but is initialized lazily to allow apps to override defaults in -awakeFromNib
+    
+    BOOL _touchesMoved;
 }
 
 /// Any other functionality you need to manipulate the map you can access through this

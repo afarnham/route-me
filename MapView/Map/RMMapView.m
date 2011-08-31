@@ -429,7 +429,7 @@
 			&& [touch phase] != UITouchPhaseMoved
 			&& [touch phase] != UITouchPhaseStationary)
 			continue;
-		
+
 		CGPoint location = [touch locationInView: self];
 		
 		//		RMLog(@"For touch at %.0f, %.0f:", location.x, location.y);
@@ -437,6 +437,7 @@
 		float dy = location.y - gesture.center.y;
 		//		RMLog(@"delta = %.0f, %.0f  distance = %f", dx, dy, sqrtf((dx*dx) + (dy*dy)));
 		gesture.averageDistanceFromCenter += sqrtf((dx*dx) + (dy*dy));
+        
 	}
 
 	gesture.averageDistanceFromCenter /= interestingTouches;
@@ -470,6 +471,7 @@
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    _touchesMoved = NO;
 	UITouch *touch = [[touches allObjects] objectAtIndex:0];
 	//Check if the touch hit a RMMarker subclass and if so, forward the touch event on
 	//so it can be handled there
@@ -514,6 +516,7 @@
 		}
 	}
 
+    _touchesMoved = NO;
 	// I don't understand what the difference between this and touchesEnded is.
 	[self touchesEnded:touches withEvent:event];
 }
@@ -557,7 +560,11 @@
 			[self startDecelerationWithDelta:touchDelta];
             decelerating = YES;
 		}
-	}
+	} else if (!_touchesMoved && [touches count] == 2) {
+        float prevZoomFactor = [self.contents prevNativeZoomFactor];
+        if (prevZoomFactor != 0)
+            [self zoomByFactor:prevZoomFactor near:[touch locationInView:self] animated:YES];
+    }
 	
     
 	// If there are no more fingers on the screen, resume any slow operations.
@@ -603,11 +610,13 @@
 		}
 	}
 	
+    _touchesMoved = NO;
 	if (_delegateHasAfterMapTouch) [delegate afterMapTouch: self];
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    _touchesMoved = YES;
 	UITouch *touch = [[touches allObjects] objectAtIndex:0];
 	
 	//Check if the touch hit a RMMarker subclass and if so, forward the touch event on
